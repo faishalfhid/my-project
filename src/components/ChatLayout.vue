@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col ">
     <!-- Header -->
     <header class="p-4 border-b bg-white shadow-sm">
       <h2 class="text-lg font-semibold">YouTube Video Chatbot</h2>
