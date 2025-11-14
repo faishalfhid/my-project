@@ -1,3 +1,4 @@
+
 <template>
   <div class="flex flex-col h-screen bg-gray-50">
     <!-- Step 1: Input video -->
@@ -5,24 +6,33 @@
       <div class="bg-white shadow-lg rounded-2xl p-6 w-full max-w-md space-y-4">
         <h2 class="text-xl font-semibold text-center">Masukkan Informasi Video</h2>
 
-        <input
-          v-model="videoTitle"
-          placeholder="Judul Video"
-          class="border w-full p-2 rounded-lg text-sm"
-        />
-        <input
-          v-model="videoUrl"
-          placeholder="URL YouTube"
-          class="border w-full p-2 rounded-lg text-sm"
-        />
+<input
+  v-model="videoTitle"
+  placeholder="Judul Video"
+  class="border w-full p-2 rounded-lg text-sm"
+/>
 
-        <button
-          @click="startChat"
-          :disabled="!videoTitle || !videoUrl"
-          class="bg-blue-600 text-white w-full py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-        >
-          Mulai Chat
-        </button>
+<input
+  v-model="videoUrl"
+  @input="validateUrl"
+  placeholder="URL YouTube"
+  class="border w-full p-2 rounded-lg text-sm"
+  :class="!urlValid ? 'border-red-500' : ''"
+/>
+
+<p v-if="!urlValid" class="text-red-500 text-sm">
+  ❌ URL YouTube tidak valid
+</p>
+
+<button
+  @click="startChat"
+  :disabled="!videoTitle || !videoUrl || !urlValid || isLoadingVideo"
+  class="bg-blue-600 text-white w-full py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+>
+  <span v-if="!isLoadingVideo">Mulai Chat</span>
+  <span v-else>Mengirim...</span>
+</button>
+
       </div>
     </div>
 
@@ -62,21 +72,51 @@
 import { ref, nextTick } from 'vue'
 import MessageList from '../components/MessageList.vue'
 import InputBox from '../components/InputBox.vue'
+import { sendMessage } from '../api3.js'
+import { submitVideoInfo } from '../api.js'
+
+const errorMsg = ref('')
 
 const videoTitle = ref('')
 const videoUrl = ref('')
 const videoSelected = ref(false)
+const urlValid = ref(true)
+
+function validateUrl() {
+  const youtubeRegex =
+    /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w\-]{6,}/
+
+  urlValid.value = youtubeRegex.test(videoUrl.value)
+}
+
+const isLoadingVideo = ref(false)
 
 const messages = ref([])
 const isTyping = ref(false)
 const chatContainer = ref(null)
 
-function startChat() {
-  videoSelected.value = true
-  messages.value = [
-    { id: 1, from: 'bot', text: `Halo! Saya siap membantu menjawab pertanyaan tentang video "${videoTitle.value}".` }
-  ]
+async function startChat() {
+  isLoadingVideo.value = true
+
+  try {
+    const response = await submitVideoInfo(videoUrl.value, videoTitle.value)
+
+    videoSelected.value = true
+
+    messages.value = [
+      {
+        id: 1,
+        from: 'bot',
+        text: response.output || "Video berhasil dikirim!"
+      }
+    ]
+  } catch (err) {
+    alert("❌ Gagal mengirim data ke server.")
+  } finally {
+    isLoadingVideo.value = false
+  }
 }
+
 
 function resetVideo() {
   videoSelected.value = false
@@ -98,15 +138,28 @@ async function handleSend(text) {
   isTyping.value = true
   scrollToBottom()
 
-  await new Promise((r) => setTimeout(r, 1500))
+  try {
+    // Kirim ke n8n webhook
+    const botReply = await sendMessage(text)
 
-  isTyping.value = false
-  messages.value.push({
-    id: Date.now() + 1,
-    from: 'bot',
-    text: `Oke, pertanyaanmu tentang "${videoTitle.value}" sudah saya terima: "${text}"`
-  })
-
-  scrollToBottom()
+    // Tambahkan respon dari bot
+    messages.value.push({
+      id: Date.now() + 1,
+      from: 'bot',
+      text: botReply
+    })
+  } catch (error) {
+    messages.value.push({
+      id: Date.now() + 2,
+      from: 'bot',
+      text: '⚠️ Gagal menghubungi server. Coba lagi nanti.'
+    })
+  } finally {
+    isTyping.value = false
+    scrollToBottom()
+  }
 }
+
+
+
 </script>
