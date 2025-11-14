@@ -1,5 +1,5 @@
 <template>
-  <nav class="bg-white shadow-sm fixed top-0 left-0 w-full z-50">
+  <nav class="bg-white shadow-sm fixed top-0 left-0 w-full z-50 pl-4 pr-4">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 relative">
       <div class="flex absolute inset-0 items-center h-16 justify-between">
         <!-- Logo / Brand -->
@@ -16,7 +16,7 @@
         </div> -->
 
         <!-- Mobile Menu Button -->
-        <button
+        <!-- <button
           @click="isOpen = !isOpen"
           class="md:hidden text-gray-700 hover:text-blue-600 focus:outline-none"
         >
@@ -30,16 +30,16 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M6 18L18 6M6 6l12 12" />
           </svg>
-        </button>
+        </button> -->
       </div>
     </div>
 
     <!-- Mobile Dropdown -->
-    <div v-show="isOpen" class="md:hidden bg-white border-t">
+    <!-- <div v-show="isOpen" class="md:hidden bg-white border-t">
       <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-blue-50">Home</a>
       <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-blue-50">About</a>
       <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-blue-50">Docs</a>
-    </div>
+    </div> -->
   </nav>
 </template>
 
